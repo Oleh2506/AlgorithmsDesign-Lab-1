@@ -13,6 +13,7 @@ ExternalSortEngine::ExternalSortEngine(const char* pathA, const char* pathB, con
 	strcpy_s(mPathC, pathC);
 }
 
+// Перевірка на відсортованість в неспадному порядку чисел файлу A
 bool ExternalSortEngine::isSorted() {
 
 	std::fstream inA;
@@ -39,6 +40,7 @@ bool ExternalSortEngine::isSorted() {
 	return isSorted;
 }
 
+// Сортування набору чисел з файлу A в неспадному порядку
 void ExternalSortEngine::sort() {
 
 	while (!(this->split())) {
@@ -72,6 +74,8 @@ void ExternalSortEngine::print10(const char* filePath) {
 	fin.close();
 }
 
+// Розбиття файлу A на файли B і C, в які будуть послідовно записані "серії" з вихідного файлу;
+// "Серія" -- неспадна послідовність чисел з вихідного файлу
 bool ExternalSortEngine::split() {
 
 	std::fstream inA, outB, outC;
@@ -116,6 +120,7 @@ bool ExternalSortEngine::split() {
 	return isSorted;
 }
 
+// Злиття відповідних серій з файлів B і C в файл A
 void ExternalSortEngine::merge() {
 
 	std::fstream outA, inB, inC;
@@ -130,6 +135,8 @@ void ExternalSortEngine::merge() {
 	inC.read((char*)&nextC, sizeof(nextC));
 
 	do {
+		// Якщо поточні елементи файлів B і C не є останніми в своїх серіях,
+		// то записуємо менший з них до файлу A і зчитуємо наступний елемент відповідної серії
 		if ((currB <= nextB) && (currC <= nextC)) {
 
 			if (currB <= currC) {
@@ -144,6 +151,14 @@ void ExternalSortEngine::merge() {
 			}
 		}
 		else {
+			// Якщо поточний елемент з файлу B є останнім в своїй серії, 
+			// а поточний елемент з файлу C не є останнім в своїй серії,
+			// то якщо елемент файлу B < елемент файлу C, то спершу записуємо його
+			// до файлу A і зчитуємо наступний елемент файлу B, 
+			// а після записуємо всі елементи серії файлу C до файлу A
+			// і зчитуємо наступний елемент файлу C,
+			// інакше, записуємо поточний елемент файлу C в файл A
+			// і зчитуємо наступний елемент файлу C
 			if ((currB > nextB) && (currC <= nextC)) {
 				if (currB <= currC) {
 
@@ -164,6 +179,14 @@ void ExternalSortEngine::merge() {
 				}
 			}
 			else {
+				// Якщо поточний елемент з файлу C є останнім в своїй серії, 
+				// а поточний елемент з файлу B не є останнім в своїй серії,
+				// то якщо елемент файлу C < елемент файлу B, то спершу записуємо його
+				// до файлу A і зчитуємо наступний елемент файлу C, 
+				// а після записуємо всі елементи серії файлу B до файлу A
+				// і зчитуємо наступний елемент файлу B,
+				// інакше, записуємо поточний елемент файлу B в файл A
+				// і зчитуємо наступний елемент файлу B
 				if ((currB <= nextB) && (currC > nextC)) {
 					if (currC <= currB) {
 
@@ -184,6 +207,9 @@ void ExternalSortEngine::merge() {
 					}
 				}
 				else {
+					// Якщо поточні елементи файлів A та B є останніми в своїх серіях, 
+					// то спершу записуємо менший з них до файлу A, а після більший;
+					// далі зчитуємо наступні елементи обох файлів
 					if (currB <= currC) {
 						outA.write((char*)&currB, sizeof(currB));
 						outA.write((char*)&currC, sizeof(currC));
@@ -202,6 +228,7 @@ void ExternalSortEngine::merge() {
 		}
 	} while (!inB.eof() && !inC.eof());
 
+	// Якщо в файлі B залишилися елементи, записуємо їх до файлу A
 	if (!inB.eof()) {
 
 		while (!inB.eof()) {
@@ -210,6 +237,7 @@ void ExternalSortEngine::merge() {
 			inB.read((char*)&nextB, sizeof(nextB));
 		}
 	}
+	// Якщо в файлі C залишилися елементи, записуємо їх до файлу A
 	if (!inC.eof()) {
 
 		while (!inC.eof()) {
@@ -224,6 +252,7 @@ void ExternalSortEngine::merge() {
 	inC.close();
 }
 
+// Генерація набору випадкових aLength випадкових чисел, що будуть записані до файлу A
 void ExternalSortEngine::generateRandomA(long long aLength) {
 
 	std::fstream fileA, fileA1;
