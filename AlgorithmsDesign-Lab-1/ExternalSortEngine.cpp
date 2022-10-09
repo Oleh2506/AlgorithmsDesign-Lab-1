@@ -44,13 +44,6 @@ void ExternalSortEngine::sort() {
 	while (!isSorted()) {
 
 		this->split();
-		/*std::cout << "A:\t";
-		print10(mPathA);
-		std::cout << "B:\t";
-		print10(mPathB);
-		std::cout << "C:\t";
-		print10(mPathC);
-		std::cout << "\n";*/
 		this->merge();
 	}
 }
@@ -264,7 +257,6 @@ void ExternalSortEngine::generateRandomA(long long aLength) {
 	std::uniform_int_distribution<int> dist(INT_MIN + 1, INT_MAX - 1);
 
 	fileA.open(mPathA, std::ios::binary | std::ios::out | std::ios::trunc);
-	//fileA1.open("a1.dat", std::ios::binary | std::ios::out | std::ios::trunc);
 
 	for (int i{ 0 }; i < aLength; ++i) {
 
