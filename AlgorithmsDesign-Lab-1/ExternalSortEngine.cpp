@@ -1,6 +1,4 @@
 #include "ExternalSortEngine.h"
-
-#include "ExternalSortEngine.h"
 #include <iostream>
 #include <fstream>
 #include <random>
