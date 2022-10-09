@@ -264,7 +264,7 @@ void ExternalSortEngine::generateRandomA(long long aLength) {
 	std::uniform_int_distribution<int> dist(INT_MIN + 1, INT_MAX - 1);
 
 	fileA.open(mPathA, std::ios::binary | std::ios::out | std::ios::trunc);
-	fileA1.open("a1.dat", std::ios::binary | std::ios::out | std::ios::trunc);
+	//fileA1.open("a1.dat", std::ios::binary | std::ios::out | std::ios::trunc);
 
 	for (int i{ 0 }; i < aLength; ++i) {
 
