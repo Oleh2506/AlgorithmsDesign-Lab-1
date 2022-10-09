@@ -41,8 +41,9 @@ bool ExternalSortEngine::isSorted() {
 // Сортування набору чисел з файлу A в неспадному порядку
 void ExternalSortEngine::sort() {
 
-	while (!(this->split())) {
+	while (!isSorted()) {
 
+		this->split();
 		/*std::cout << "A:\t";
 		print10(mPathA);
 		std::cout << "B:\t";
@@ -50,7 +51,6 @@ void ExternalSortEngine::sort() {
 		std::cout << "C:\t";
 		print10(mPathC);
 		std::cout << "\n";*/
-
 		this->merge();
 	}
 }
@@ -74,7 +74,7 @@ void ExternalSortEngine::print10(const char* filePath) {
 
 // Розбиття файлу A на файли B і C, в які будуть послідовно записані "серії" з вихідного файлу;
 // "Серія" -- неспадна послідовність чисел з вихідного файлу
-bool ExternalSortEngine::split() {
+void ExternalSortEngine::split() {
 
 	std::fstream inA, outB, outC;
 	inA.open(mPathA, std::ios::binary | std::ios::in);
@@ -83,7 +83,6 @@ bool ExternalSortEngine::split() {
 
 	bool writeToB{ true };
 	int next{}, curr{};
-	bool isSorted{ true };
 
 	inA.read((char*)&curr, sizeof(curr));
 	while (!inA.eof()) {
@@ -100,7 +99,6 @@ bool ExternalSortEngine::split() {
 
 			if (next < curr) {
 				writeToB = !writeToB;
-				isSorted = false;
 			}
 
 			curr = next;
@@ -114,8 +112,6 @@ bool ExternalSortEngine::split() {
 	inA.close();
 	outB.close();
 	outC.close();
-
-	return isSorted;
 }
 
 // Злиття відповідних серій з файлів B і C в файл A
@@ -149,59 +145,67 @@ void ExternalSortEngine::merge() {
 			}
 		}
 		else {
-			// Якщо поточний елемент з файлу B є останнім в своїй серії, 
-			// а поточний елемент з файлу C не є останнім в своїй серії,
-			// то якщо елемент файлу B < елемент файлу C, то спершу записуємо його
-			// до файлу A і зчитуємо наступний елемент файлу B, 
-			// а після записуємо всі елементи серії файлу C до файлу A
-			// і зчитуємо наступний елемент файлу C,
-			// інакше, записуємо поточний елемент файлу C в файл A
-			// і зчитуємо наступний елемент файлу C
+			// Опрацювання випадку, коли поточний елемент з файлу B є останнім в своїй серії, 
+			// а поточний елемент з файлу C не є останнім в своїй серії
 			if ((currB > nextB) && (currC <= nextC)) {
-				if (currB <= currC) {
 
-					outA.write((char*)&currB, sizeof(currB));
-					currB = nextB;
-					inB.read((char*)&nextB, sizeof(nextB));
+				while (currC <= nextC && !inC.eof()) {
+					if (currB <= currC) {
+						outA.write((char*)&currB, sizeof(currB));
+						currB = nextB;
+						inB.read((char*)&nextB, sizeof(nextB));
 
-					while ((currC <= nextC) && !inC.eof()) {
+						while (currC <= nextC && !inC.eof()) {
+							outA.write((char*)&currC, sizeof(currC));
+							currC = nextC;
+							inC.read((char*)&nextC, sizeof(nextC));
+						}
+
+						if (!inC.eof()) {
+							outA.write((char*)&currC, sizeof(currC));
+							currC = nextC;
+							inC.read((char*)&nextC, sizeof(nextC));
+						}
+						break;
+					}
+					else {
 						outA.write((char*)&currC, sizeof(currC));
 						currC = nextC;
 						inC.read((char*)&nextC, sizeof(nextC));
+	
 					}
-				}
-				else {
-					outA.write((char*)&currC, sizeof(currC));
-					currC = nextC;
-					inC.read((char*)&nextC, sizeof(nextC));
 				}
 			}
 			else {
-				// Якщо поточний елемент з файлу C є останнім в своїй серії, 
-				// а поточний елемент з файлу B не є останнім в своїй серії,
-				// то якщо елемент файлу C < елемент файлу B, то спершу записуємо його
-				// до файлу A і зчитуємо наступний елемент файлу C, 
-				// а після записуємо всі елементи серії файлу B до файлу A
-				// і зчитуємо наступний елемент файлу B,
-				// інакше, записуємо поточний елемент файлу B в файл A
-				// і зчитуємо наступний елемент файлу B
+				// Опрацювання випадку, коли поточний елемент з файлу C є останнім в своїй серії, 
+				// а поточний елемент з файлу B не є останнім в своїй серії
 				if ((currB <= nextB) && (currC > nextC)) {
-					if (currC <= currB) {
+					
 
-						outA.write((char*)&currC, sizeof(currC));
-						currC = nextC;
-						inC.read((char*)&nextC, sizeof(nextC));
+					while (currB <= nextB && !inB.eof()) {
+						if (currC <= currB) {
+							outA.write((char*)&currC, sizeof(currC));
+							currC = nextC;
+							inC.read((char*)&nextC, sizeof(nextC));
 
-						while ((currB <= nextB) && !inB.eof()) {
+							while (currB <= nextB && !inB.eof()) {
+								outA.write((char*)&currB, sizeof(currB));
+								currB = nextB;
+								inB.read((char*)&nextB, sizeof(nextB));
+							}
+
+							if (!inB.eof()) {
+								outA.write((char*)&currB, sizeof(currB));
+								currB = nextB;
+								inB.read((char*)&nextB, sizeof(nextB));
+							}
+							break;
+						}
+						else {
 							outA.write((char*)&currB, sizeof(currB));
 							currB = nextB;
 							inB.read((char*)&nextB, sizeof(nextB));
 						}
-					}
-					else {
-						outA.write((char*)&currB, sizeof(currB));
-						currB = nextB;
-						inB.read((char*)&nextB, sizeof(nextB));
 					}
 				}
 				else {
@@ -260,7 +264,7 @@ void ExternalSortEngine::generateRandomA(long long aLength) {
 	std::uniform_int_distribution<int> dist(INT_MIN + 1, INT_MAX - 1);
 
 	fileA.open(mPathA, std::ios::binary | std::ios::out | std::ios::trunc);
-	//fileA1.open("a1.dat", std::ios::binary | std::ios::out | std::ios::trunc);
+	fileA1.open("a1.dat", std::ios::binary | std::ios::out | std::ios::trunc);
 
 	for (int i{ 0 }; i < aLength; ++i) {
 
